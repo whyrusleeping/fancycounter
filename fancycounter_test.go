@@ -205,7 +205,7 @@ func TestAddCounters(t *testing.T) {
 	fmt.Println(vals2)
 	fmt.Println(fc2dbg)
 
-	fc1.AddFromCounter(fc2)
+	fc1.AddFromCounterDestructive(fc2)
 
 	exp := make(map[uint64]int)
 	for k, v := range vals1 {

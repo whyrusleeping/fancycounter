@@ -88,12 +88,11 @@ func (fc *FancyCounter) AddN(v uint64, n int) {
 }
 
 func (fc *FancyCounter) AddMany(inp *roaring64.Bitmap) {
-	fc.addManyPow2(inp, 0)
+	m := inp.Clone()
+	fc.addManyPow2(m, 0)
 }
 
-func (fc *FancyCounter) addManyPow2(inp *roaring64.Bitmap, powtwo int) {
-	m := inp.Clone()
-
+func (fc *FancyCounter) addManyPow2(m *roaring64.Bitmap, powtwo int) {
 	for i := powtwo; i < len(fc.maps) && !m.IsEmpty(); i++ {
 		fc.maps[i].Xor(m)
 		m.AndNot(fc.maps[i])
@@ -145,6 +144,14 @@ func (fc *FancyCounter) MulAllByPow2(n int) {
 }
 
 func (fc *FancyCounter) AddFromCounter(ofc *FancyCounter) {
+	for i := len(ofc.maps) - 1; i >= 0; i-- {
+		mc := ofc.maps[i].Clone()
+		fc.addManyPow2(mc, i)
+	}
+}
+
+// AddFromCounterDestructive is a faster version of AddFromCounter that uses (and mutates) the input bitmaps
+func (fc *FancyCounter) AddFromCounterDestructive(ofc *FancyCounter) {
 	for i := len(ofc.maps) - 1; i >= 0; i-- {
 		fc.addManyPow2(ofc.maps[i], i)
 	}
