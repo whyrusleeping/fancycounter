@@ -4,26 +4,26 @@ import (
 	"github.com/RoaringBitmap/roaring/roaring64"
 )
 
-type fancyCounter struct {
+type FancyCounter struct {
 	limit  int
 	thresh int
 	maps   []*roaring64.Bitmap
 }
 
-func newFancyCounter(limitPowTwo int) *fancyCounter {
+func NewFancyCounter(limitPowTwo int) *FancyCounter {
 	maps := make([]*roaring64.Bitmap, limitPowTwo)
 	for i := 0; i < len(maps); i++ {
 		maps[i] = roaring64.New()
 	}
 
-	return &fancyCounter{
+	return &FancyCounter{
 		limit:  limitPowTwo,
 		thresh: 1 << (limitPowTwo - 1),
 		maps:   maps,
 	}
 }
 
-func (fc *fancyCounter) Add(v uint64) {
+func (fc *FancyCounter) Add(v uint64) {
 	if fc.maps[fc.limit-1].Contains(v) {
 		return
 	}
@@ -40,7 +40,7 @@ func (fc *fancyCounter) Add(v uint64) {
 	}
 }
 
-func (fc *fancyCounter) AddN(v uint64, n int) {
+func (fc *FancyCounter) AddN(v uint64, n int) {
 	if fc.maps[fc.limit-1].Contains(v) {
 		return
 	}
@@ -79,11 +79,11 @@ func (fc *fancyCounter) AddN(v uint64, n int) {
 	}
 }
 
-func (fc *fancyCounter) AddMany(inp *roaring64.Bitmap) {
+func (fc *FancyCounter) AddMany(inp *roaring64.Bitmap) {
 	fc.addManyPow2(inp, 0)
 }
 
-func (fc *fancyCounter) addManyPow2(inp *roaring64.Bitmap, powtwo int) {
+func (fc *FancyCounter) addManyPow2(inp *roaring64.Bitmap, powtwo int) {
 	m := inp.Clone()
 
 	for i := powtwo; i < len(fc.maps) && !m.IsEmpty(); i++ {
@@ -92,33 +92,33 @@ func (fc *fancyCounter) addManyPow2(inp *roaring64.Bitmap, powtwo int) {
 	}
 }
 
-func (fc *fancyCounter) Remove(v uint64) {
+func (fc *FancyCounter) Remove(v uint64) {
 	for _, m := range fc.maps {
 		m.Remove(v)
 	}
 }
 
-func (fc *fancyCounter) RemoveLessThanThresh(thresh uint64) {
+func (fc *FancyCounter) RemoveLessThanThresh(thresh uint64) {
 	for _, m := range fc.maps {
 		m.RemoveRange(0, thresh)
 	}
 }
 
-func (fc *fancyCounter) RemoveMany(rm *roaring64.Bitmap) {
+func (fc *FancyCounter) RemoveMany(rm *roaring64.Bitmap) {
 	for _, m := range fc.maps {
 		m.AndNot(rm)
 	}
 }
 
-func (fc *fancyCounter) GetTopBits() *roaring64.Bitmap {
+func (fc *FancyCounter) GetTopBits() *roaring64.Bitmap {
 	return fc.maps[fc.limit-1]
 }
 
-func (fc *fancyCounter) GetNthTopSet(n int) *roaring64.Bitmap {
+func (fc *FancyCounter) GetNthTopSet(n int) *roaring64.Bitmap {
 	return fc.maps[fc.limit-n]
 }
 
-func (fc *fancyCounter) MulAllByPow2(n int) {
+func (fc *FancyCounter) MulAllByPow2(n int) {
 	for i := 0; i < n; i++ {
 		a := len(fc.maps) - 1
 		b := len(fc.maps) - (i + 2)
@@ -136,13 +136,13 @@ func (fc *fancyCounter) MulAllByPow2(n int) {
 	}
 }
 
-func (fc *fancyCounter) AddFromCounter(ofc *fancyCounter) {
+func (fc *FancyCounter) AddFromCounter(ofc *FancyCounter) {
 	for i := len(ofc.maps) - 1; i >= 0; i-- {
 		fc.addManyPow2(ofc.maps[i], i)
 	}
 }
 
-func (fc *fancyCounter) DebugGetVals() map[uint64]int {
+func (fc *FancyCounter) DebugGetVals() map[uint64]int {
 	out := make(map[uint64]int)
 	for i := 0; i < len(fc.maps); i++ {
 		iter := fc.maps[i].Iterator()
@@ -154,7 +154,7 @@ func (fc *fancyCounter) DebugGetVals() map[uint64]int {
 	return out
 }
 
-func (fc *fancyCounter) Clear() {
+func (fc *FancyCounter) Clear() {
 	for _, m := range fc.maps {
 		m.Clear()
 	}
