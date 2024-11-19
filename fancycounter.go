@@ -23,6 +23,14 @@ func NewFancyCounter(limitPowTwo int) *FancyCounter {
 	}
 }
 
+func (fc *FancyCounter) Limit() int {
+	return fc.limit
+}
+
+func (fc *FancyCounter) Thresh() int {
+	return fc.thresh
+}
+
 func (fc *FancyCounter) Add(v uint64) {
 	if fc.maps[fc.limit-1].Contains(v) {
 		return
