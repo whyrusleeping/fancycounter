@@ -153,3 +153,9 @@ func (fc *fancyCounter) DebugGetVals() map[uint64]int {
 	}
 	return out
 }
+
+func (fc *fancyCounter) Clear() {
+	for _, m := range fc.maps {
+		m.Clear()
+	}
+}
